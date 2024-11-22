@@ -99,6 +99,46 @@ for epoch in range(epochs):
     
     # 保存模型
     model.save_weights(f"Adogandcat_epoch_{epoch + 1}.h5")
-    print("模型已保存。")
+    print("模型权重已保存。")
 
+
+#预测部分
+# 定义和加载 VGG16 模型
+vgg16 = VGG16(num_classes=2)
+vgg16.build(input_shape=(None, 224, 224, 3))
+vgg16.load_weights('Adogandcat_epoch_20.h5')  # 替换为训练好的 VGG16 权重路径
+
+# 加载和预处理图像
+def load_and_preprocess_image(image_path, target_size=(224, 224)):
+    img = load_img(image_path, target_size=target_size)  # 加载图像并调整大小
+    img_array = img_to_array(img)  # 转换为 NumPy 数组
+    img_array = np.expand_dims(img_array, axis=0)  # 添加批次维度
+    img_array = preprocess_input(img_array)  # VGG16 所需的标准化
+    return img, img_array
+
+# 预测和显示图像
+def predict_and_display(image_path, model, model_name):
+    # 加载图像
+    original_img, processed_img = load_and_preprocess_image(image_path)
+
+    # 预测类别
+    predictions = model(processed_img, training=False)
+    predicted_class = np.argmax(predictions, axis=1)[0]
+    confidence = predictions[0][predicted_class]
+
+    # 显示结果
+    plt.figure(figsize=(6, 6))
+    plt.imshow(original_img)
+    plt.axis('off')
+    plt.title(f"Model: {model_name}\nPredicted Class: {predicted_class}\nConfidence: {confidence:.2f}")
+    plt.show()
+
+# 测试图像路径
+image_path = 'data/test/1.jpg'  # 替换为实际图像路径
+
+# 使用 CustomCNN 预测
+predict_and_display(image_path, custom_cnn, "Custom CNN")
+
+# 使用 VGG16 预测
+predict_and_display(image_path, vgg16, "VGG16")
 
